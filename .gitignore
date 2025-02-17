@@ -1,7 +1,7 @@
 .idea/
 .venv/
 
-mem
+MEM.pickle
 *.html
 *.htm
 *.css
