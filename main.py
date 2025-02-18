@@ -1,10 +1,13 @@
 import pickle
+import re
 from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
 
 MEM: dict[str, BeautifulSoup]
+USE_MEM: bool = True
+
 SUBJECTS: set[str] = {'63220', '63216', '63280', '63217'}
 URL: str = 'https://urnik.fri.uni-lj.si/timetable/fri-2024_2025-letni'
 
@@ -47,20 +50,31 @@ def run(soup: BeautifulSoup) -> None:
     with open('original.html', 'w', encoding='utf-8') as f:
         f.write(soup.prettify())
 
+    # Add main.js
+    soup.head.append(soup.new_tag('script', src='/static/js/main.js'))
+
+    # Disable links
+    for a in soup.find_all('a'):
+        a.attrs.pop('href')
+
+    # Remove popups
+    for div in soup.find_all('div', class_='entry-hover'):
+        div.decompose()
+
+    # Remove group list
+    soup.find('div', class_='group-list').decompose()
+
+    # Remove groups
     for div in soup.find_all('div', class_='bottom-aligned'):
         div.decompose()
 
-    # from urllib.parse import urlparse, parse_qs
-    # for div in soup.find_all('div', class_='grid-entry'):
-    #     a = div.find('a', class_='link-subject')
-    #     if parse_qs(urlparse(a['href']).query)['subject'][0] not in SUBJECTS:
-    #         div.decompose()
-
+    # Rename subjects
     for a in soup.find_all('a', class_='link-subject'):
-        a.string = a.string.split('_')[0].split('(')[0]
+        a.string = re.match(r'(.*?)(?:\(.*\))?_.*', a.string).group(1)
 
-    div = soup.find('div', class_='group-list')
-    div.decompose()
+    # Recolour
+    for div in soup.find_all('div', class_='grid-entry'):
+        div['style'] = re.sub(r'(hsla\(.+, .+%, ).+(%, .+\))', r'\g<1>35\g<2>', div['style'])
 
     with open('modified.html', 'w', encoding='utf-8') as f:
         f.write(soup.prettify())
@@ -70,7 +84,7 @@ if __name__ == '__main__':
     load_mem()
 
     query: str = '/allocations?' + '&'.join('subject=' + subj for subj in sorted(SUBJECTS))
-    soup_ = get_soup_url(URL + query, True)
+    soup_ = get_soup_url(URL + query, USE_MEM)
 
     store_mem()
 
