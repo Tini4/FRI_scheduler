@@ -38,11 +38,12 @@ def get_query(subjects: list[str]) -> str:
 
 def get_soup_url(url: str, use_cache: bool = True) -> BeautifulSoup:
     cache = load_cache()
+    url_print = f'{urlparse(url).netloc}{urlparse(url).path}'
 
     if use_cache and url in cache:
-        print(f'cached: {urlparse(url).path} ({url})\n')
+        print(f'cached: {url_print} ({url})\n')
     else:
-        print(f'retrieving: {urlparse(url).path} ({url})\n')
+        print(f'retrieving: {url_print} ({url})\n')
 
         session = Session()
         page = session.get(url)
