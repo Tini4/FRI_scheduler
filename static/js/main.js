@@ -1,10 +1,26 @@
-// Add the event listener to the document or a parent element
-document.addEventListener('click', function (event) {
-    // Check if the clicked element (or its parent) is a <div> with the class "grid-entry"
-    const gridEntry = event.target.closest('div.grid-entry');
+let deleted = [];
 
-    if (gridEntry) {
-        // Remove the closest <div> with class "grid-entry"
-        gridEntry.remove();
+// Listen for clicks on grid entries
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('div.grid-entry').forEach(entry => {
+        entry.addEventListener('click', event => {
+            const div = event.currentTarget;
+
+            deleted.push(div);
+            div.style.display = 'none';
+        });
+    });
+});
+
+// Listen for Ctrl+Z (Undo)
+document.addEventListener('keydown', function (event) {
+    if (event.ctrlKey && event.key === 'z') {
+        event.preventDefault();
+
+        const div = deleted.pop();
+
+        if (div) {
+            div.style.display = '';
+        }
     }
 });
