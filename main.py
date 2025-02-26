@@ -29,7 +29,7 @@ def get_url() -> str:
     session = Session()
     page = session.get(SCHEDULE_URL)
 
-    return page.url
+    return page.url[:-1]
 
 
 def get_query(subjects: list[str]) -> str:
@@ -119,7 +119,7 @@ def run() -> None:
     with open('modified.html', 'w', encoding='utf-8') as f:
         f.write(soup.prettify())
 
-    print(Path('modified.html').absolute())
+    print(Path('modified.html').absolute().as_uri())
 
 
 if __name__ == '__main__':
