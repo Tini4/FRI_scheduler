@@ -1,44 +1,56 @@
 import pickle
 import re
+from argparse import ArgumentParser, Namespace
+from pathlib import Path
 from urllib.parse import urlparse
 
-import requests
 from bs4 import BeautifulSoup
+from requests import Session
 
-MEM: dict[str, BeautifulSoup]
-USE_MEM: bool = True
-
-SUBJECTS: set[str] = {'63220', '63216', '63280', '63217'}
-URL: str = 'https://urnik.fri.uni-lj.si/timetable/fri-2024_2025-letni'
+CACHE_FILE: str = 'cache.pkl'
+SCHEDULE_URL: str = 'https://urnik.fri.uni-lj.si'
 
 
-def load_mem():
-    global MEM
-
+def load_cache() -> dict[str, BeautifulSoup]:
     # noinspection PyBroadException
     try:
-        with open('MEM.pickle', 'rb') as f:
-            MEM = pickle.load(f)
+        with open(CACHE_FILE, 'rb') as f:
+            return pickle.load(f)
     except Exception:
-        MEM = {}
+        return {}
 
 
-def store_mem():
-    with open('MEM.pickle', 'wb') as f:
-        pickle.dump(MEM, f)
+def store_cache(cache: dict[str, BeautifulSoup]) -> None:
+    with open(CACHE_FILE, 'wb') as f:
+        pickle.dump(cache, f)
 
 
-def get_soup_url(url: str, mem: bool = True) -> BeautifulSoup:
-    if not mem or url not in MEM:
+def get_url() -> str:
+    session = Session()
+    page = session.get(SCHEDULE_URL)
+
+    return page.url
+
+
+def get_query(subjects: list[str]) -> str:
+    return '/allocations?' + '&'.join('subject=' + subj for subj in sorted(set(subjects)))
+
+
+def get_soup_url(url: str, use_cache: bool = True) -> BeautifulSoup:
+    cache = load_cache()
+
+    if use_cache and url in cache:
+        print(f'cached: {urlparse(url).path} ({url})\n')
+    else:
         print(f'retrieving: {urlparse(url).path} ({url})\n')
 
-        session = requests.Session()
+        session = Session()
         page = session.get(url)
-        MEM[url] = BeautifulSoup(page.content, 'html.parser')  # 'html5lib')
-    else:
-        print(f'cached: {urlparse(url).path} ({url})\n')
+        cache[url] = BeautifulSoup(page.content, 'html.parser')  # 'html5lib')
 
-    return MEM[url]
+        store_cache(cache)
+
+    return cache[url]
 
 
 def get_soup_file(file: str) -> BeautifulSoup:
@@ -46,12 +58,40 @@ def get_soup_file(file: str) -> BeautifulSoup:
         return BeautifulSoup(_f.read(), 'html.parser')  # 'html5lib')
 
 
-def run(soup: BeautifulSoup) -> None:
+def parse_arguments() -> Namespace:
+    parser = ArgumentParser(
+        prog='FRI_scheduler',
+        description='Create your schedule for FRI faculty',
+        epilog='by Tini4'
+    )
+    parser.add_argument('subject', nargs='+',
+                        help='Subject IDs (e.g. 63220 63216 63280 ...)')
+    parser.add_argument('-u', '--url',
+                        help='URL for schedule (e.g. https://urnik.fri.uni-lj.si/timetable/fri-2024_2025-letni)')
+    parser.add_argument('-c', '--cache', action='store_false',
+                        help='Disable caching')
+
+    args = parser.parse_args()
+
+    if args.url is None:
+        args.url = get_url()
+
+    return args
+
+
+def run() -> None:
+    args = parse_arguments()
+
+    soup = get_soup_url(args.url + get_query(args.subject), args.cache)
+
     with open('original.html', 'w', encoding='utf-8') as f:
         f.write(soup.prettify())
 
     # Add main.js
-    soup.head.append(soup.new_tag('script', src='/static/js/main.js'))
+    soup.head.append(soup.new_tag('script', src='static/js/main.js'))
+
+    # Fix allocations.css
+    soup.head.append(soup.new_tag('link', href='static/css/allocations.css', rel='stylesheet'))
 
     # Disable links
     for a in soup.find_all('a'):
@@ -79,13 +119,8 @@ def run(soup: BeautifulSoup) -> None:
     with open('modified.html', 'w', encoding='utf-8') as f:
         f.write(soup.prettify())
 
+    print(Path('modified.html').absolute())
+
 
 if __name__ == '__main__':
-    load_mem()
-
-    query: str = '/allocations?' + '&'.join('subject=' + subj for subj in sorted(SUBJECTS))
-    soup_ = get_soup_url(URL + query, USE_MEM)
-
-    store_mem()
-
-    run(soup_)
+    run()
