@@ -1,6 +1,6 @@
 # FRI scheduler
 
-Create your schedule for FRI faculty.
+Create your schedule for UL FRI.
 
 ## Usage
 

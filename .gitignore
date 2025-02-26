@@ -1,10 +1,7 @@
 .idea/
 .venv/
 
+test/
+
 cache.pkl
 *.html
-*.htm
-*.css
-*.js
-
-!static/**/*

@@ -61,13 +61,13 @@ def get_soup_file(file: str) -> BeautifulSoup:
 def parse_arguments() -> Namespace:
     parser = ArgumentParser(
         prog='FRI_scheduler',
-        description='Create your schedule for FRI faculty.',
+        description='Create your schedule for UL FRI.',
         epilog='by Tini4'
     )
     parser.add_argument('subject', nargs='+',
                         help='Subject IDs (e.g. 63220 63216 63280 ...)')
     parser.add_argument('-u', '--url',
-                        help='URL for schedule (e.g. https://urnik.fri.uni-lj.si/timetable/fri-2024_2025-letni)')
+                        help='Schedule URL (e.g. https://urnik.fri.uni-lj.si/timetable/fri-2024_2025-letni)')
     parser.add_argument('-c', '--cache', action='store_false',
                         help='Disable caching')
 
@@ -88,10 +88,10 @@ def main() -> None:
         f.write(soup.prettify())
 
     # Add main.js
-    soup.head.append(soup.new_tag('script', src='static/js/main.js'))
+    soup.head.append(soup.new_tag('script', src='static/main.js'))
 
-    # Fix allocations.css
-    soup.head.append(soup.new_tag('link', href='static/css/allocations.css', rel='stylesheet'))
+    # Add style.css
+    soup.head.append(soup.new_tag('link', href='static/style.css', rel='stylesheet'))
 
     # Disable links
     for a in soup.find_all('a'):
