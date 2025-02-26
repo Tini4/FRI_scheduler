@@ -61,7 +61,7 @@ def get_soup_file(file: str) -> BeautifulSoup:
 def parse_arguments() -> Namespace:
     parser = ArgumentParser(
         prog='FRI_scheduler',
-        description='Create your schedule for FRI faculty',
+        description='Create your schedule for FRI faculty.',
         epilog='by Tini4'
     )
     parser.add_argument('subject', nargs='+',
