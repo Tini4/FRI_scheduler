@@ -79,7 +79,7 @@ def parse_arguments() -> Namespace:
     return args
 
 
-def run() -> None:
+def main() -> None:
     args = parse_arguments()
 
     soup = get_soup_url(args.url + get_query(args.subject), args.cache)
@@ -123,4 +123,4 @@ def run() -> None:
 
 
 if __name__ == '__main__':
-    run()
+    main()

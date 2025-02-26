@@ -1,3 +1,11 @@
+.grid-complete-row {
+    pointer-events: none;
+}
+
+.grid-entry {
+    pointer-events: auto;
+}
+
 body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     background-color: #0e1011 !important;
@@ -7,10 +15,6 @@ body {
 .header {
     display: flex;
     justify-content: space-between;
-}
-
-.header .titles {
-
 }
 
 .header .title {
@@ -30,7 +34,6 @@ body {
 .grid-container {
     margin: 3ex 0.5em;
 }
-
 
 .grid-day {
     grid-row: day-row-start / day-row-end;
@@ -82,12 +85,6 @@ body {
     justify-content: space-between;
 }
 
-.grid-entry .description .top-aligned {
-}
-
-.grid-entry .description .bottom-aligned {
-}
-
 .grid-entry .description .row {
     display: block;
 }
@@ -128,10 +125,6 @@ a {
 
     /* we want this to react to pointer events (e.g. hovering), previously disabled */
     pointer-events: auto;
-}
-
-a:hover {
-    color: rgb(3, 155, 229);
 }
 
 a.link-subject {
