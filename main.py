@@ -26,6 +26,7 @@ def store_cache(cache: dict[str, BeautifulSoup]) -> None:
 
 
 def get_url() -> str:
+    # TODO: cache
     session = Session()
     page = session.get(SCHEDULE_URL)
 
@@ -108,6 +109,9 @@ def main() -> None:
     # Remove groups
     for div in soup.find_all('div', class_='bottom-aligned'):
         div.decompose()
+
+    # Remove header links
+    soup.find('div', class_='header').find('div', class_='aside').decompose()
 
     # Rename subjects
     for a in soup.find_all('a', class_='link-subject'):
