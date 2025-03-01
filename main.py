@@ -11,6 +11,8 @@ CACHE_FILE: str = 'cache.pkl'
 SCHEDULE_URL: str = 'https://urnik.fri.uni-lj.si'
 
 
+# TODO: logging
+
 def load_cache() -> dict[str, BeautifulSoup]:
     # noinspection PyBroadException
     try:
@@ -25,12 +27,22 @@ def store_cache(cache: dict[str, BeautifulSoup]) -> None:
         pickle.dump(cache, f)
 
 
-def get_url() -> str:
-    # TODO: cache
-    session = Session()
-    page = session.get(SCHEDULE_URL)
+def get_url(use_cache: bool = True) -> str:
+    cache = load_cache()
+    url_print = f'{urlparse(SCHEDULE_URL).netloc}{urlparse(SCHEDULE_URL).path}'
 
-    return page.url[:-1]
+    if use_cache and '@' in cache:
+        print(f'cached: {url_print} ({SCHEDULE_URL})\n')
+    else:
+        print(f'retrieving: {url_print} ({SCHEDULE_URL})\n')
+
+        session = Session()
+        page = session.get(SCHEDULE_URL)
+        cache['@'] = BeautifulSoup(f'<a>{page.url}</a>', 'html.parser')
+
+        store_cache(cache)
+
+    return cache['@'].text
 
 
 def get_query(subjects: list[str]) -> str:
